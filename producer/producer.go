@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-    // Создаём Kafka-продюсера с конфигурацией
+    // Создаём kafka-продюсера
     writer := kafka.NewWriter(kafka.WriterConfig{
         Brokers:  []string{"localhost:9092"},
         Topic:    "my-topic",
@@ -19,18 +19,20 @@ func main() {
         Async:    false,
     })
 
+    // Закрываем reader при выходе из main
     defer writer.Close()
 
-    // Создаём контекст для WriteMessages
+    // Создаём контекст
     ctx := context.Background()
 
-    // Цикл отправки 50 сообщений
-    for i := 1; i <= 50; i++ {
+    // Основной бесконечный цикл записи сообщений
+    for i := 1; ; i++ {
         // Создаём сообщение с уникальным ID и текстом
         msg := &models.Message{
             ID:      i,
             Content: fmt.Sprintf("Номер сообщения %d", i),
         }
+
         // Сериализуем сообщение в JSON
         data, _ := msg.Serialize()
         fmt.Println("Отправляем:", string(data))
@@ -42,6 +44,7 @@ func main() {
         if err != nil {
             log.Println("Ошибка отправки сообщения:", err)
         }
+
         // Ждём 500 мс перед отправкой следующего сообщения
         time.Sleep(500 * time.Millisecond)
     }

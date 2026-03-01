@@ -10,20 +10,20 @@ import (
 )
 
 func main() {
-    // Создаём Kafka-консьюмера с конфигурацией
+    // Создаём kafka-консьюмера
     reader := kafka.NewReader(kafka.ReaderConfig{
         Brokers:        []string{"localhost:9092"},
         Topic:          "my-topic",
         GroupID:        "batch-consumer-group",
-        MinBytes:       10,   
-        MaxWait:        1000, 
+        MinBytes:       1024,   
         MaxBytes:       10e6,
         CommitInterval: 0,
-        StartOffset: kafka.FirstOffset,
     })
-    defer reader.Close() // закрываем reader при выходе из main
 
-    // Создаём контекст для FetchMessage
+    // Закрываем reader при выходе из main
+    defer reader.Close()
+
+    // Создаём контекст
     ctx := context.Background()
 
     // Основной цикл для чтения сообщений
@@ -34,6 +34,7 @@ func main() {
             log.Println("Ошибка при fetch:", err)
             continue
         }
+
         // Десериализуем полученное сообщение из JSON в структуру Message
         message, err := models.Deserialize(msgs.Value)
         if err == nil {
@@ -41,7 +42,6 @@ func main() {
         }
 
         // Ручной коммит оффсета после обработки сообщения
-        // nil вместо контекста используется для простоты, можно передавать ctx
         if err := reader.CommitMessages(ctx, msgs); err != nil {
             log.Println("Ошибка коммита:", err)
         }
