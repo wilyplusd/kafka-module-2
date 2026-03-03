@@ -37,11 +37,14 @@ func main() {
 		}
 
 		// Сериализуем сообщение в JSON
-		data, _ := msg.Serialize()
-		fmt.Println("Отправляем:", string(data))
+		data, err := msg.Serialize()
+		if err != nil {
+			log.Printf("Ошибка сериализации сообщения ID=%d: %v\n", msg.ID, err)
+			continue // не отправляем битое сообщение
+		}
 
 		// Отправляем сообщение в Kafka
-		err := writer.WriteMessages(ctx, kafka.Message{
+		err = writer.WriteMessages(ctx, kafka.Message{
 			Value: data,
 		})
 		if err != nil {
